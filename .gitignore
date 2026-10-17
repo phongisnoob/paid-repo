@@ -1,0 +1,34 @@
+
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Virtual environments
+.venv/
+.venv-*/
+venv/
+env/
+
+# Datasets, extracted features and generated data
+data/
+
+# Training outputs and checkpoints
+results/
+outputs/
+checkpoints/
+runs/
+*.pt
+*.pth
+*.ckpt
+*.npy
+
+# Local secrets and logs
+.env
+.env.*
+!.env.example
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

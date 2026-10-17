@@ -1,0 +1,8 @@
+torch
+torchaudio          # chỉ dùng khi audio không phải 16 kHz
+transformers
+soundfile
+numpy
+pandas
+scikit-learn
+pytest

@@ -6,24 +6,9 @@ import pandas as pd
 
 from sklearn.metrics import confusion_matrix, classification_report
 
-SPK_TO_L1 = {
-    "ABA": "Arabic", "SKA": "Arabic", "YBAA": "Arabic", "ZHAA": "Arabic",
-    "BWC": "Chinese", "LXC": "Chinese", "NCC": "Chinese", "TXHC": "Chinese",
-    "ASI": "Hindi", "RRBI": "Hindi", "SVBI": "Hindi", "TNI": "Hindi",
-    "HJK": "Korean", "HKK": "Korean", "YDCK": "Korean", "YKWK": "Korean",
-    "EBVS": "Spanish", "ERMS": "Spanish", "MBMPS": "Spanish", "NJS": "Spanish",
-    "HQTV": "Vietnamese", "PNV": "Vietnamese", "THV": "Vietnamese", "TLV": "Vietnamese",
-}
+from paid.l2arctic import L1S, SPK_TO_L1
 
-L1_ID_TO_NAME = {
-    0: "Arabic",
-    1: "Chinese",
-    2: "Hindi",
-    3: "Korean",
-    4: "Spanish",
-    5: "Vietnamese",
-}
-
+L1_ID_TO_NAME = dict(enumerate(L1S))
 # Collect predictions from all 4 folds.
 def load_variant(run, variant):
     dfs = []

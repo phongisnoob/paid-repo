@@ -6,14 +6,35 @@ mà bài báo còn thiếu.
 
 ## Trạng thái kiểm thử
 
-| Phần | Trạng thái |
-|---|---|
-| Parser TextGrid, bộ phone ARPAbet-39, chia fold | Đã test (33 test, `pytest tests`) |
-| Span pooling, masking, model, training loop, report | Đã test trên dữ liệu giả |
-| Luồng wav + TextGrid -> cache (`extract_features.py`) | Đã test với encoder giả |
-| Wrapper Whisper-small / WavLM Base+ (`paid/encoders.py`) | **Chưa chạy** (sandbox không tải được trọng số). Xem bước 4 |
-| Chạy MFA trên L2-ARCTIC thật | **Chưa chạy**. Xem bước 3 |
-| Con số 81.41% | **Chưa tái hiện**, cần bạn chạy |
+| Phần                                                     | Trạng thái                                                        |
+| -------------------------------------------------------- | ----------------------------------------------------------------- |
+| Parser TextGrid, bộ phone ARPAbet-39, chia fold          | Đã test (33 test, `pytest tests`)                                 |
+| Span pooling, masking, model, training loop, report      | Đã test trên dữ liệu giả và đã chạy trên dữ liệu thật             |
+| Luồng wav + TextGrid -> cache (`extract_features.py`)    | Đã chạy trên L2-ARCTIC thật (Whisper-small)                       |
+| Wrapper Whisper-small (`paid/encoders.py`)               | Đã chạy                                                           |
+| Wrapper WavLM Base+ (`paid/encoders.py`)                 | <Đã chạy / Chưa chạy>                                             |
+| MFA trên L2-ARCTIC thật                                  | Đã chạy, căn chỉnh được <N_ok>/<N_total> câu (bỏ qua <N_skip>)    |
+| Con số 81.41% của bài báo                                | Bản dựng này đạt <xx.xx> ± <x.xx>% (xem "Kết quả" bên dưới)       |
+
+Môi trường chạy: <GPU>, Python <x.y>, torch <x.y.z>, transformers <x.y.z>, MFA <3.x>,
+commit `<hash>`, ngày <dd/mm/yyyy>.
+
+## Kết quả
+
+Whisper-small, 4-fold speaker-disjoint, 10 epoch, mean ± std theo fold (ddof=0):
+
+| Biến thể         | Accuracy (%)  | Ghi chú                          |
+| ---------------- | ------------- | -------------------------------- |
+| `utt`            | <xx.xx ± x.xx> |                                  |
+| `paid_nopid`     | <xx.xx ± x.xx> |                                  |
+| `paid`           | <xx.xx ± x.xx> | Bài báo: 81.41                   |
+| `speechutt_proj` | <xx.xx ± x.xx> | Control chính (xem phần đọc kết quả) |
+
+<Một hai câu nhận định thật: có tái hiện được không, chênh bao nhiêu, và `paid` so với
+`speechutt_proj` cho thấy điều gì. Nếu có fold yếu bất thường (ví dụ fold 3) thì nêu ở đây.>
+
+Số từng fold không khớp bài vì cách chia speaker vào fold khác (xem bảng quyết định bên dưới);
+chỉ nên so trung bình.
 
 ## Cài đặt
 

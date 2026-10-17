@@ -1,8 +1,10 @@
-from pathlib import Path
-import pandas as pd
-from sklearn.metrics import confusion_matrix, classification_report
 
-RUN = Path(r"D:\paid_repo\data\runs\whisper_complete")
+import argparse
+from pathlib import Path
+
+import pandas as pd
+
+from sklearn.metrics import confusion_matrix, classification_report
 
 SPK_TO_L1 = {
     "ABA": "Arabic", "SKA": "Arabic", "YBAA": "Arabic", "ZHAA": "Arabic",
@@ -23,10 +25,10 @@ L1_ID_TO_NAME = {
 }
 
 # Collect predictions from all 4 folds.
-def load_variant(variant):
+def load_variant(run, variant):
     dfs = []
     for fold in range(4):
-        path = RUN / variant / f"fold{fold}" / "preds.csv"
+        path = run / variant / f"fold{fold}" / "preds.csv"
         df = pd.read_csv(path)
         df["fold"] = fold
         dfs.append(df)
@@ -40,10 +42,10 @@ def add_l1_columns(df):
     return df
 
 
-def main():
-    paid = add_l1_columns(load_variant("paid"))
-    utt = add_l1_columns(load_variant("utt"))
-    nopid = add_l1_columns(load_variant("paid_nopid"))
+def main(run):
+    paid = add_l1_columns(load_variant(run, "paid"))
+    utt = add_l1_columns(load_variant(run, "utt"))
+    nopid = add_l1_columns(load_variant(run, "paid_nopid"))
 
     labels = list(L1_ID_TO_NAME.values())
 
@@ -161,4 +163,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--run", type=Path, required=True,
+                        help="thư mục run, ví dụ runs/whisper")
+    args = parser.parse_args()
+    main(args.run)

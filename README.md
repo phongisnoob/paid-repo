@@ -12,29 +12,46 @@ mà bài báo còn thiếu.
 | Span pooling, masking, model, training loop, report      | Đã test trên dữ liệu giả và đã chạy trên dữ liệu thật             |
 | Luồng wav + TextGrid -> cache (`extract_features.py`)    | Đã chạy trên L2-ARCTIC thật (Whisper-small)                       |
 | Wrapper Whisper-small (`paid/encoders.py`)               | Đã chạy                                                           |
-| Wrapper WavLM Base+ (`paid/encoders.py`)                 | <Đã chạy / Chưa chạy>                                             |
-| MFA trên L2-ARCTIC thật                                  | Đã chạy, căn chỉnh được <N_ok>/<N_total> câu (bỏ qua <N_skip>)    |
-| Con số 81.41% của bài báo                                | Bản dựng này đạt <xx.xx> ± <x.xx>% (xem "Kết quả" bên dưới)       |
+| Wrapper WavLM Base+ (`paid/encoders.py`)                 | Chưa chạy                                                         |
+| MFA trên L2-ARCTIC thật                                  | Đã chạy, căn chỉnh được 26.867/26.867 câu (100%)                  |
+| Con số 81.41% của bài báo                                | Chưa tái hiện: `paid` đạt 77.60 ± 8.64% (xem "Kết quả")           |
 
 Môi trường chạy: <GPU>, Python <x.y>, torch <x.y.z>, transformers <x.y.z>, MFA <3.x>,
 commit `<hash>`, ngày <dd/mm/yyyy>.
 
 ## Kết quả
 
-Whisper-small, 4-fold speaker-disjoint, 10 epoch, mean ± std theo fold (ddof=0):
+Whisper-small, 4-fold speaker-disjoint, 10 epoch, một seed. Mean ± std theo fold (ddof=0):
 
-| Biến thể         | Accuracy (%)  | Ghi chú                          |
-| ---------------- | ------------- | -------------------------------- |
-| `utt`            | <xx.xx ± x.xx> |                                  |
-| `paid_nopid`     | <xx.xx ± x.xx> |                                  |
-| `paid`           | <xx.xx ± x.xx> | Bài báo: 81.41                   |
-| `speechutt_proj` | <xx.xx ± x.xx> | Control chính (xem phần đọc kết quả) |
+| Biến thể         | fold0 | fold1 | fold2 | fold3 | Mean ± std   |
+| ---------------- | ----- | ----- | ----- | ----- | ------------ |
+| `utt`            | 88.89 | 78.66 | 85.11 | 68.49 | 80.29 ± 7.73 |
+| `speechutt_proj` | 87.42 | 77.66 | 82.57 | 64.74 | 78.10 ± 8.45 |
+| `paid_nopid`     | 87.40 | 76.06 | 81.89 | 65.74 | 77.77 ± 8.02 |
+| `paid`           | 87.91 | 76.18 | 81.82 | 64.47 | 77.60 ± 8.64 |
+| `paid_mlp_nopid` | 87.76 | 78.46 | 82.14 | 61.45 | 77.46 ± 9.82 |
+| `paid_mlp`       | 85.27 | 76.53 | 82.54 | 64.28 | 77.16 ± 8.08 |
+| `paid_tf`        | 81.74 | 77.29 | 80.26 | 63.26 | 75.64 ± 7.32 |
+| `paid_tf_nopid`  | 80.17 | 78.08 | 80.72 | 60.73 | 74.92 ± 8.25 |
 
-<Một hai câu nhận định thật: có tái hiện được không, chênh bao nhiêu, và `paid` so với
-`speechutt_proj` cho thấy điều gì. Nếu có fold yếu bất thường (ví dụ fold 3) thì nêu ở đây.>
+Bài báo: PAID 81.41%. Bản dựng này **không tái hiện được** con số đó (`paid` thấp hơn 3.8 điểm).
 
-Số từng fold không khớp bài vì cách chia speaker vào fold khác (xem bảng quyết định bên dưới);
-chỉ nên so trung bình.
+Nhận xét:
+- Phone ID không cho lợi ích đo được ở cả ba loại head: `paid` - `paid_nopid` là -0.17 (linear),
+  -0.30 (MLP), +0.72 (Transformer), dấu không nhất quán giữa các fold.
+- `paid_tf` so với `paid_tf_nopid`: +0.68 điểm, CI 95% [-3.21, +4.82] (bootstrap theo 24 speaker).
+  Khoảng này rộng nên không loại trừ được lợi ích hay tác hại cỡ vài điểm; kết quả chỉ cho thấy
+  chưa có bằng chứng phone ID giúp ích.
+- `paid` so với `speechutt_proj`: -0.49 điểm, CI 95% [-2.06, +1.22] (bootstrap theo speaker);
+  span grouping và phone ID cộng lại không cho lợi ích đo được.
+- `utt` so với `speechutt_proj`: +2.21 điểm, CI [+0.05, +4.54]; thêm projection làm kết quả kém đi.
+- Mô hình càng nhiều tham số càng thấp (utt > projection > MLP > Transformer). Có thể do
+  quá khớp trên 18 speaker huấn luyện mỗi fold, nhưng chưa được kiểm chứng.
+- Fold 3 thấp (61-68%) do ba speaker khó: TXHC (L1 Chinese, thấp nhất), ZHAA và NJS. TXHC bị
+  đoán lẫn giữa Chinese, Korean và Vietnamese ở `paid` và `utt`; alignment MFA của TXHC bình thường.
+- Mỗi biến thể chỉ chạy một lần; chênh lệch dưới khoảng 1 điểm nằm trong nhiễu huấn luyện.
+- Các control `*_shuffle_pid` chưa chạy vì phone ID chưa cho lợi ích nào cần kiểm tra thêm.
+- WavLM chưa chạy.
 
 ## Cài đặt
 
@@ -89,7 +106,10 @@ python scripts/report.py runs/whisper
 python scripts/report.py runs/whisper --compare paid utt          # bootstrap theo speaker
 python scripts/report.py runs/whisper --per_speaker paid
 ```
-Lặp lại với `feats/wavlm` (thêm `paid_nopid`, `frameattn`) để dựng lại Bảng I.
+Lặp lại với `feats/wavlm` (thêm `paid_nopid`, `frameattn`) để dựng lại Bảng I (chưa chạy).
+
+Đã chạy: `speechutt_proj`, `paid_mlp`, `paid_mlp_nopid`, `paid_tf`, `paid_tf_nopid`.
+Chưa chạy: `utt_proj`, `speechutt`, các biến thể `*_shuffle_pid`.
 
 ## Cách đọc kết quả
 

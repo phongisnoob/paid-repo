@@ -39,8 +39,11 @@ def add_l1_columns(df):
     # y/pred are numeric class IDs.
     df["true_l1"] = df["y"].map(L1_ID_TO_NAME)
     df["pred_l1"] = df["pred"].map(L1_ID_TO_NAME)
+    assert df["true_l1"].notna().all() and df["pred_l1"].notna().all(), \
+        "y/pred contain IDs outside 0..5; label order may differ from training"
+    unknown = set(df["spk"]) - set(SPK_TO_L1)
+    assert not unknown, f"unknown speakers in preds.csv: {unknown}"
     return df
-
 
 def main(run):
     paid = add_l1_columns(load_variant(run, "paid"))
